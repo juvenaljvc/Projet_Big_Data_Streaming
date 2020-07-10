@@ -7,13 +7,15 @@ import org.apache.spark.streaming.kafka010.KafkaUtils._
 import org.apache.spark.streaming.kafka010.LocationStrategies._
 import org.apache.spark.streaming.kafka010.ConsumerStrategies._
 import SparkBigData._
+import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.streaming.dstream.InputDStream
 
 
 object KafkaStreaming {
 
   var KafkaParam : Map[String, Object] = Map(null, null)
-
+  var ConsommateurKafka : InputDStream[ConsumerRecord[String, String]] = null
+  private var trace_kafka : Logger = LogManager.getLogger("Log_Console")
 
   def getKafkaParams ( kafkaBootStrapServers : String, KafkaConsumerGroupId : String, KafkaConsumerReadOrder : String,
                        KafkaZookeeper : String, KerberosName : String) : Map[String, Object] = {
@@ -36,17 +38,24 @@ object KafkaStreaming {
   def getConsommateurKafka( kafkaBootStrapServers : String, KafkaConsumerGroupId : String, KafkaConsumerReadOrder : String,
                             KafkaZookeeper : String, KerberosName : String, batchDuration : Int,
                             KafkaTopics : Array[String]) : InputDStream[ConsumerRecord[String, String]] = {
+    try {
 
-    val ssc = getSparkStreamingContext(true, batchDuration)
-    KafkaParam = getKafkaParams(kafkaBootStrapServers, KafkaConsumerGroupId , KafkaConsumerReadOrder ,KafkaZookeeper, KerberosName )
+      val ssc = getSparkStreamingContext(true, batchDuration)
+      KafkaParam = getKafkaParams(kafkaBootStrapServers, KafkaConsumerGroupId , KafkaConsumerReadOrder ,KafkaZookeeper, KerberosName )
 
-    val ConsommateurKafka : InputDStream[ConsumerRecord[String, String]] = KafkaUtils.createDirectStream[String, String](
-      ssc,
-      PreferConsistent,
-      Subscribe[String, String](KafkaTopics, KafkaParam )
-    )
+       ConsommateurKafka = KafkaUtils.createDirectStream[String, String](
+        ssc,
+        PreferConsistent,
+        Subscribe[String, String](KafkaTopics, KafkaParam )
+      )
 
-    return ConsommateurKafka
+    } catch {
+      case ex : Exception =>
+        trace_kafka.error(s"erreur dans l'initialisation du consumer Kafka ${ex.printStackTrace()}")
+        trace_kafka.info(s"La liste des paramètres pour la connexion du consommateur Kafka sont : ${KafkaParam}")
+    }
+
+     return ConsommateurKafka
 
   }
 

@@ -1,16 +1,41 @@
+import java.io.FileNotFoundException
+
 import org.apache.avro.ipc.specific.Person
 
 import scala.tools.nsc.doc.model.Public
 import scala.collection.mutable._
+import org.apache.log4j._
+
+import scala.io._
+
 
 object HelloWorldBigData {
   /* premier programme Scala  */
   val ma_var_imm : String = "Juvenal"   // variable immutable
-  private val une_var_imm : String = "Formation Big Data "  // variable à portée privée
 
   class Person (var nom : String, var prenom : String, var age : Int)
 
+  private val une_var_imm : String = "Formation Big Data "  // variable à portée privée
+  BasicConfigurator.configure()
+  private var trace_appli : Logger = LogManager.getLogger("Logger_Console")
+
   def main(args: Array[String]): Unit = {
+
+
+      val diviseur : Double = try {
+        division(12, 0)
+      } catch {
+        case ex : ArithmeticException => 0
+        case ex2 : IllegalArgumentException => 0
+      }
+
+      trace_appli.info(s"la valeur de votre division est de ${diviseur}")
+
+      lecture_fichier("c:/programmes/mesdonnees.txt")
+
+      val nombre  = convert_entier("10")
+      trace_appli.info(s"la valeur de votre nombre converti est : $nombre")
+
     println("Hello World : mon premier programme en Scala")
 
     var test_mu : Int  = 15    // variable mutable
@@ -36,6 +61,11 @@ object HelloWorldBigData {
 
   //ma première fonction
   def Comptage_caracteres (texte : String) : Int = {
+
+    trace_appli.info("démarrage du traçage de la classe")
+    trace_appli.info(s"le paramètre tracé par Log4J pour cette fonction est : $texte")
+    trace_appli.warn(s"Message d'avertissement Log4J interpolation de chaînes : ${10 + 15}")
+
      if (texte.isEmpty) {
        0
      } else {
@@ -131,6 +161,7 @@ object HelloWorldBigData {
     tuple_2.toString().toList
   }
 
+
   //table de hachage
   val states = Map(
     "AK" -> "Alaska",
@@ -148,8 +179,30 @@ object HelloWorldBigData {
   val montableau : Array[String] = Array("juv", "jvc", "test")
   montableau.foreach(e => println(e))
 
+  // utilisation d'un gestionnaire d'erreur
+  def convert_entier (nombre_chaine : String) : Int = {
+    try {
+      val nombre : Int = nombre_chaine.toInt
+      return nombre
+    } catch {
+        case ex : Exception => 0
+    }
 
+  }
 
+  def lecture_fichier(chemin_fichier : String) : Unit = {
+    try {
+      val fichier = Source.fromFile(chemin_fichier)
+      fichier.getLines()
+      fichier.close()
+    } catch {
+      case ex : FileNotFoundException => trace_appli.error("votre fichier est introuvable. Vérifiez le chemin d'accès"+ ex.printStackTrace())
+    }
 
+  }
 
+  def division(numerateur : Int, denominateur : Int) : Double = {
+    val resultat = numerateur/denominateur
+    return resultat
+  }
 }
