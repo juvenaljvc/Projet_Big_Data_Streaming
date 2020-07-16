@@ -23,7 +23,7 @@ object SparkBigData {
   def Session_Spark (Env : Boolean = true) : SparkSession = {
     try {
      if (Env == true) {
-       System.setProperty("hadoop.home.dir", "C:/Hadoop")
+       System.setProperty("hadoop.home.dir", "C:/Hadoop/")
        ss = SparkSession.builder
            .master("local[*]")
            .config("spark.sql.crossJoin.enabled", "true")

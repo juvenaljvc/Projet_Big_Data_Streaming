@@ -45,7 +45,7 @@ object HelloWorldBigData {
 
     val  test_imm : Int = 15
 
-    println ("Votre texte contient : " + Comptage_caracteres("qu'avez-vous mangé ce matin ?   ") + " caractères")
+    println ("Votre texte contient : " + comptage_caracteres("qu'avez-vous mangé ce matin ?   ") + " caractères")
 
     getResultat(10)
 
@@ -60,7 +60,7 @@ object HelloWorldBigData {
   }
 
   //ma première fonction
-  def Comptage_caracteres (texte : String) : Int = {
+  def comptage_caracteres (texte : String) : Int = {
 
     trace_appli.info("démarrage du traçage de la classe")
     trace_appli.info(s"le paramètre tracé par Log4J pour cette fonction est : $texte")
@@ -205,4 +205,5 @@ object HelloWorldBigData {
     val resultat = numerateur/denominateur
     return resultat
   }
+
 }

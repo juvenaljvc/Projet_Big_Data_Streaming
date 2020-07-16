@@ -16,6 +16,8 @@
         <scala.langage.version>2.11.8</scala.langage.version>
         <spark.streaming.kafka.version>2.2.0</spark.streaming.kafka.version>
         <log4j.version>2.13.3</log4j.version>
+        <junit.version>4.12</junit.version>
+        <scalatest.version>3.1.1</scalatest.version>
     </properties>
 
     <dependencies>
@@ -61,6 +63,20 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${log4j.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/junit/junit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.scalatest/scalatest -->
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.11</artifactId>
+            <version>${scalatest.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
