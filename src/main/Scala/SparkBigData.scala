@@ -27,7 +27,7 @@ object SparkBigData {
        ss = SparkSession.builder
            .master("local[*]")
            .config("spark.sql.crossJoin.enabled", "true")
-           .enableHiveSupport()
+        //   .enableHiveSupport()
            .getOrCreate()
      }else {
        ss  = SparkSession.builder
