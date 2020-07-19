@@ -20,6 +20,7 @@ class SparkTestUnitaires extends AnyFlatSpec with SparkSessionProvider with Data
     var env : Boolean = true
     val sst = SparkBigData.Session_Spark(env)
 
+
   }
 
   it should("compare two data frame") in {

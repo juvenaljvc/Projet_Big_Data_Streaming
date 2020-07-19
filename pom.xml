@@ -18,7 +18,7 @@
         <log4j.version>2.13.3</log4j.version>
         <junit.version>4.12</junit.version>
         <scalatest.version>3.1.1</scalatest.version>
-        <spark.projet.base.version>0.7.4</spark.projet.base.version>
+        <spark.projet.base.version>2.2.0_0.7.4</spark.projet.base.version>
     </properties>
 
     <dependencies>
@@ -83,7 +83,7 @@
         <dependency>
             <groupId>com.holdenkarau</groupId>
             <artifactId>spark-testing-base_2.11</artifactId>
-            <version>2.2.0_0.7.4</version>
+            <version>${spark.projet.base.version}</version>
             <scope>test</scope>
         </dependency>
 

@@ -6,10 +6,11 @@ import scala.tools.nsc.doc.model.Public
 import scala.collection.mutable._
 import org.apache.log4j._
 
+import PackageTest.PBGS.ClassTest
+
 import scala.io._
 
-
-object HelloWorldBigData {
+object HelloWorldBigData  {
   /* premier programme Scala  */
   val ma_var_imm : String = "Juvenal"   // variable immutable
 
@@ -21,6 +22,9 @@ object HelloWorldBigData {
 
   def main(args: Array[String]): Unit = {
 
+
+    val tt : ClassTest = new ClassTest
+    val ttt : Int = tt.comptage_package("essai")
 
       val diviseur : Double = try {
         division(12, 0)

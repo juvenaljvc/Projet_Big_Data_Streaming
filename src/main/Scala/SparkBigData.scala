@@ -17,12 +17,12 @@ object SparkBigData {
 
   /**
    * fonction qui initialise et instancie une session spark
-   * @param Env : c'est une variable qui indique l'environnement sur lequel notre application est déployée.
+   * @param env : c'est une variable qui indique l'environnement sur lequel notre application est déployée.
    *            Si Env = True, alors l'appli est déployée en local, sinon, elle est déployée sur un cluster
    */
-  def Session_Spark (Env : Boolean = true) : SparkSession = {
+  def Session_Spark (env : Boolean = true) : SparkSession = {
     try {
-     if (Env == true) {
+     if (env == true) {
        System.setProperty("hadoop.home.dir", "C:/Hadoop/")
        ss = SparkSession.builder
            .master("local[*]")
