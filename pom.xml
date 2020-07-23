@@ -19,6 +19,7 @@
         <junit.version>4.12</junit.version>
         <scalatest.version>3.1.1</scalatest.version>
         <spark.projet.base.version>2.2.0_0.7.4</spark.projet.base.version>
+        <kafka.client.version>2.1.0</kafka.client.version>
     </properties>
 
     <dependencies>
@@ -85,6 +86,12 @@
             <artifactId>spark-testing-base_2.11</artifactId>
             <version>${spark.projet.base.version}</version>
             <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka.client.version}</version>
         </dependency>
 
     </dependencies>

@@ -1,15 +1,17 @@
 import org.apache.spark.streaming.kafka010._
 import org.apache.kafka.clients.consumer._
-import org.apache.kafka.common.protocol.SecurityProtocol
+import org.apache.kafka.common.protocol
 import org.apache.kafka.common.serialization._
 import org.apache.kafka.common._
 import org.apache.spark.streaming.kafka010.KafkaUtils._
 import org.apache.spark.streaming.kafka010.LocationStrategies._
 import org.apache.spark.streaming.kafka010.ConsumerStrategies._
 import SparkBigData._
+import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.streaming.dstream.InputDStream
-
+import java.util.Properties
+import org.apache.kafka.clients.producer._
 
 /*
 cet objet regroupe l'ensemble des méthodes et fonctions nécessaires :
@@ -35,7 +37,7 @@ object KafkaStreaming {
    * @return : la fonction renvoie une table clé-valeur des paramètres de connexion à un cluster Kafka spécifique
    */
 
-  def getKafkaParams ( kafkaBootStrapServers : String, KafkaConsumerGroupId : String, KafkaConsumerReadOrder : String,
+  def getKafkaConsumerParams ( kafkaBootStrapServers : String, KafkaConsumerGroupId : String, KafkaConsumerReadOrder : String,
                        KafkaZookeeper : String, KerberosName : String) : Map[String, Object] = {
     KafkaParam = Map(
       "bootstrap.servers" -> kafkaBootStrapServers,
@@ -50,6 +52,48 @@ object KafkaStreaming {
       )
 
       return KafkaParam
+
+  }
+
+  def getKafkaProducerParams (KafkaBootStrapServers : String) : Properties = {
+    val props : Properties = new Properties()
+    props.put("key.serializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    props.put("value.serializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    props.put("acks", "all")
+    props.put("bootstrap.servers ", KafkaBootStrapServers)
+    props.put("security.protocol",  "SASL_PLAINTEXT")
+
+   return props
+
+  }
+
+  /**
+   * création d'un Kafka Producer qui va être déployé en production
+   * @param KafkaBootStrapServers : agents kafka sur lesquels publier le message
+   * @param topic_name : topic dans lequel publier le message
+   * @param message : message à publier dans le topic @topic_name
+   * @return : renvoie un Producer Kafka
+   */
+  def getProducerKafka (KafkaBootStrapServers : String, topic_name : String, message : String) : KafkaProducer[String, String] = {
+
+    trace_kafka.info("instanciation d'une instance du producer Kafka aux serveurs" + ${KafkaBootStrapServers})
+    lazy val producer_Kafka = new KafkaProducer[String, String](getKafkaProducerParams(KafkaBootStrapServers))
+
+    trace_kafka.info(s"message à publier dans le topic ${topic_name},  ${message}")
+    val record_publish = new ProducerRecord[String, String](topic_name, message)
+
+    try {
+      trace_kafka.info("publication du message")
+      producer_Kafka.send(record_publish)
+    } catch {
+      case ex : Exception =>
+        trace_kafka.error(s"erreur dans la publication du message dans Kafka ${ex.printStackTrace()}")
+        trace_kafka.info(s"La liste des paramètres pour la connexion du Producer Kafka sont : ${getKafkaProducerParams(KafkaBootStrapServers)}")
+    } finally {
+      producer_Kafka.close()
+    }
+
+    return producer_Kafka
 
   }
 
@@ -71,7 +115,7 @@ object KafkaStreaming {
     try {
 
       val ssc = getSparkStreamingContext(true, batchDuration)
-      KafkaParam = getKafkaParams(kafkaBootStrapServers, KafkaConsumerGroupId , KafkaConsumerReadOrder ,KafkaZookeeper, KerberosName )
+      KafkaParam = getKafkaConsumerParams(kafkaBootStrapServers, KafkaConsumerGroupId , KafkaConsumerReadOrder ,KafkaZookeeper, KerberosName )
 
        ConsommateurKafka = KafkaUtils.createDirectStream[String, String](
         ssc,
