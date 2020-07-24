@@ -1,3 +1,5 @@
+import java.time.Duration
+
 import org.apache.spark.streaming.kafka010._
 import org.apache.kafka.clients.consumer._
 import org.apache.kafka.common.protocol
@@ -11,6 +13,8 @@ import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.streaming.dstream.InputDStream
 import java.util.Properties
+import java.util.Collections
+import scala.collection.JavaConverters._
 import org.apache.kafka.clients.producer._
 
 /*
@@ -37,7 +41,7 @@ object KafkaStreaming {
    * @return : la fonction renvoie une table clé-valeur des paramètres de connexion à un cluster Kafka spécifique
    */
 
-  def getKafkaConsumerParams ( kafkaBootStrapServers : String, KafkaConsumerGroupId : String, KafkaConsumerReadOrder : String,
+  def getKafkaSparkConsumerParams ( kafkaBootStrapServers : String, KafkaConsumerGroupId : String, KafkaConsumerReadOrder : String,
                        KafkaZookeeper : String, KerberosName : String) : Map[String, Object] = {
     KafkaParam = Map(
       "bootstrap.servers" -> kafkaBootStrapServers,
@@ -57,8 +61,8 @@ object KafkaStreaming {
 
   def getKafkaProducerParams (KafkaBootStrapServers : String) : Properties = {
     val props : Properties = new Properties()
-    props.put("key.serializer", "org.apache.kafka.common.serialization.StringDeserializer")
-    props.put("value.serializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+    props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
     props.put("acks", "all")
     props.put("bootstrap.servers ", KafkaBootStrapServers)
     props.put("security.protocol",  "SASL_PLAINTEXT")
@@ -66,6 +70,70 @@ object KafkaStreaming {
    return props
 
   }
+
+  def getKafkaConsumerParams (kafkaBootStrapServers : String, KafkaConsumerGroupId : String) : Properties = {
+    val props : Properties = new Properties()
+    props.put("bootstrap.servers", kafkaBootStrapServers)
+    props.put("auto.offset.reset", "lastest")
+    props.put("groupe.id",KafkaConsumerGroupId )
+    props.put("enable.auto.commit", false)
+    props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+
+    return props
+
+  }
+
+  def getClientConsumerKafka (kafkaBootStrapServers : String, KafkaConsumerGroupId : String, topic_list : String) : KafkaConsumer[String, String] = {
+
+    trace_kafka.info("instanciation d'un consommateur Kafka...")
+    val consumer = new KafkaConsumer[String, String](getKafkaConsumerParams(kafkaBootStrapServers , KafkaConsumerGroupId))
+
+    try {
+
+      consumer.subscribe(Collections.singletonList(topic_list))
+
+      while(true) {
+        val messages : ConsumerRecords[String, String] = consumer.poll(Duration.ofSeconds(30))
+        if(!messages.isEmpty) {
+          trace_kafka.info("Nombre de messages collectés dans la fenêtre :" + messages.count())
+          for(message <- messages.asScala) {
+            println("Topic: " + message.topic() +
+              ",Key: " + message.key() +
+              ",Value: " + message.value() +
+              ", Offset: " + message.offset() +
+              ", Partition: " + message.partition())
+          }
+
+          try {
+            consumer.commitAsync()
+          }  catch {
+            case ex : CommitFailedException =>
+              trace_kafka.error("erreur dans le commit des offset. Kafka n'a pas reçu le jeton de reconnaissance confirmant que nous avons bien reçu les données")
+          }
+
+
+          // méthode de lecture 2
+          /*   val messageIterateur = messages.iterator()
+             while (messageIterateur.hasNext == true) {
+               val msg = messageIterateur.next()
+               println(msg.key() + msg.value() + msg.partition())
+             } */
+
+        }
+
+      }
+    } catch {
+      case excpt : Exception =>
+        trace_kafka.error("erreur dans le consumer" + excpt.printStackTrace())
+    } finally {
+      consumer.close()
+    }
+
+    return consumer
+
+  }
+
 
   /**
    * création d'un Kafka Producer qui va être déployé en production
@@ -83,8 +151,9 @@ object KafkaStreaming {
     val record_publish = new ProducerRecord[String, String](topic_name, message)
 
     try {
-      trace_kafka.info("publication du message")
+      trace_kafka.info("publication du message encours...")
       producer_Kafka.send(record_publish)
+      trace_kafka.info("message publié avec succès ! :)")
     } catch {
       case ex : Exception =>
         trace_kafka.error(s"erreur dans la publication du message dans Kafka ${ex.printStackTrace()}")
@@ -115,7 +184,7 @@ object KafkaStreaming {
     try {
 
       val ssc = getSparkStreamingContext(true, batchDuration)
-      KafkaParam = getKafkaConsumerParams(kafkaBootStrapServers, KafkaConsumerGroupId , KafkaConsumerReadOrder ,KafkaZookeeper, KerberosName )
+      KafkaParam = getKafkaSparkConsumerParams(kafkaBootStrapServers, KafkaConsumerGroupId , KafkaConsumerReadOrder ,KafkaZookeeper, KerberosName )
 
        ConsommateurKafka = KafkaUtils.createDirectStream[String, String](
         ssc,
