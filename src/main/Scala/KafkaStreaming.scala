@@ -91,7 +91,7 @@ object KafkaStreaming {
 
     try {
 
-      consumer.subscribe(Collections.singletonList(topic_list))
+      consumer.subscribe(Collections.singletonList(topic_list))  //on pouvait aussi faire ceci : List(topic_list).asJava
 
       while(true) {
         val messages : ConsumerRecords[String, String] = consumer.poll(Duration.ofSeconds(30))
@@ -106,7 +106,7 @@ object KafkaStreaming {
           }
 
           try {
-            consumer.commitAsync()
+            consumer.commitAsync()  // ou bien consumer.commitSync()
           }  catch {
             case ex : CommitFailedException =>
               trace_kafka.error("erreur dans le commit des offset. Kafka n'a pas reçu le jeton de reconnaissance confirmant que nous avons bien reçu les données")

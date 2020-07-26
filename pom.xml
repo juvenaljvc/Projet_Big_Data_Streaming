@@ -20,6 +20,7 @@
         <scalatest.version>3.1.1</scalatest.version>
         <spark.projet.base.version>2.2.0_0.7.4</spark.projet.base.version>
         <kafka.client.version>2.1.0</kafka.client.version>
+        <twitter.hbc.client.version>2.2.0</twitter.hbc.client.version>
     </properties>
 
     <dependencies>
@@ -93,6 +94,13 @@
             <artifactId>kafka-clients</artifactId>
             <version>${kafka.client.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.twitter/hbc-core -->
+        <dependency>
+            <groupId>com.twitter</groupId>
+            <artifactId>hbc-core</artifactId>
+            <version>${twitter.hbc.client.version}</version>
+        </dependency>
+
 
     </dependencies>
 
