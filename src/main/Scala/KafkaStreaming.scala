@@ -159,7 +159,7 @@ object KafkaStreaming {
         trace_kafka.error(s"erreur dans la publication du message dans Kafka ${ex.printStackTrace()}")
         trace_kafka.info(s"La liste des paramètres pour la connexion du Producer Kafka sont : ${getKafkaProducerParams(KafkaBootStrapServers)}")
     } finally {
-      producer_Kafka.close()
+      println("n'oubliez pas de clôturer le Producer à la fin de son utilisation")
     }
 
     return producer_Kafka
