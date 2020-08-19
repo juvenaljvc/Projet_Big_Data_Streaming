@@ -2,6 +2,8 @@ import java.time.Duration
 
 import com.twitter.hbc.httpclient.auth._
 import com.twitter.hbc.core.{Client, Constants}
+import twitter4j._
+import twitter4j.conf.{Configuration, ConfigurationBuilder}
 import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue, TimeUnit}
 
 import com.twitter.hbc.core.endpoint.{Endpoint, StatusesFilterEndpoint}
@@ -71,7 +73,69 @@ class TwitterKafkaStreaming {
 
   }
 
+  /**
+   * Ce client Twitter4J récupère les données streaming de Twitter. Il est un peu différent du client HBC, car il est plus vaste et plus complet
+   * @param CONSUMER_KEY
+   * @param CONSUMER_SECRET
+   * @param ACCESS_TOKEN
+   * @param TOKEN_SECRET
+   * @param requete
+   * @param kafkaBootStrapServers
+   * @param topic
+   */
+  def ProducerTwitter4JKafka (CONSUMER_KEY : String, CONSUMER_SECRET : String, ACCESS_TOKEN : String, TOKEN_SECRET : String, requete : String,
+                               kafkaBootStrapServers : String, topic : String) : Unit = {
 
+    val queue : BlockingQueue[Status] = new LinkedBlockingQueue[Status](10000)
+
+    val twitterConf : ConfigurationBuilder = new ConfigurationBuilder()
+    twitterConf
+      .setJSONStoreEnabled(true)
+      .setDebugEnabled(true)
+      .setOAuthConsumerKey(CONSUMER_KEY)
+      .setOAuthConsumerSecret(CONSUMER_SECRET)
+      .setOAuthAccessToken(ACCESS_TOKEN)
+      .setOAuthAccessTokenSecret(TOKEN_SECRET)
+
+    val twitterStream  = new TwitterStreamFactory(twitterConf.build()).getInstance()
+
+    val listener = new StatusListener {
+      override def onStatus(status: Status): Unit = {
+
+        trace_client_streaming.info("événement d'ajout de tweet détecté. Tweet complet : " + status.getText)
+        queue.put(status)
+        getProducerKafka(kafkaBootStrapServers, topic, status.getText)   // 1ère méthode
+
+      }
+
+      override def onDeletionNotice(statusDeletionNotice: StatusDeletionNotice): Unit = {}
+      override def onTrackLimitationNotice(numberOfLimitedStatuses: Int): Unit = {}
+      override def onScrubGeo(userId: Long, upToStatusId: Long): Unit = {}
+      override def onStallWarning(warning: StallWarning): Unit = {}
+
+      override def onException(ex: Exception): Unit = {
+        trace_client_streaming.error("Erreur généré par Twitter : " + ex.printStackTrace())
+      }
+
+    }
+
+    twitterStream.addListener(listener)
+  //  twitterStream.sample()       //déclenche la réception des twests
+
+    val query = new FilterQuery().track(requete)
+    twitterStream.filter(query)         // filtre des données
+
+    // 2 ème méthode
+    while(true){
+      val tweet : Status = queue.poll(15, TimeUnit.SECONDS)
+      getProducerKafka(kafkaBootStrapServers, topic, tweet.getText)
+    }
+
+    getProducerKafka(kafkaBootStrapServers, "", "").close()
+    twitterStream.shutdown()
+
+
+  }
 
 
 
