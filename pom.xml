@@ -21,6 +21,8 @@
         <spark.projet.base.version>2.2.0_0.7.4</spark.projet.base.version>
         <kafka.client.version>2.1.0</kafka.client.version>
         <twitter.hbc.client.version>2.2.0</twitter.hbc.client.version>
+        <twitter4j.version>4.0.4</twitter4j.version>
+        <spark.streaming.twitter.version>1.6.2</spark.streaming.twitter.version>
     </properties>
 
     <dependencies>
@@ -100,7 +102,24 @@
             <artifactId>hbc-core</artifactId>
             <version>${twitter.hbc.client.version}</version>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/org.twitter4j/twitter4j-stream -->
+        <dependency>
+            <groupId>org.twitter4j</groupId>
+            <artifactId>twitter4j-stream</artifactId>
+            <version>${twitter4j.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.twitter4j/twitter4j-core -->
+        <dependency>
+            <groupId>org.twitter4j</groupId>
+            <artifactId>twitter4j-core</artifactId>
+            <version>${twitter4j.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-streaming-twitter -->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-streaming-twitter_2.11</artifactId>
+            <version>${spark.streaming.twitter.version}</version>
+        </dependency>
 
     </dependencies>
 
