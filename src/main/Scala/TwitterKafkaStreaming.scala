@@ -19,6 +19,7 @@ import org.apache.spark.streaming.twitter.TwitterUtils
 import twitter4j.auth.OAuthAuthorization
 import SparkBigData._
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.streaming.Minutes
 
 class TwitterKafkaStreaming {

@@ -14,8 +14,10 @@ import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.streaming.dstream.InputDStream
 import java.util.Properties
 import java.util.Collections
+
 import scala.collection.JavaConverters._
 import org.apache.kafka.clients.producer._
+import org.apache.spark.streaming.StreamingContext
 
 /*
 cet objet regroupe l'ensemble des méthodes et fonctions nécessaires :
@@ -27,7 +29,7 @@ cet objet regroupe l'ensemble des méthodes et fonctions nécessaires :
 object KafkaStreaming {
 
   var KafkaParam : Map[String, Object] = Map(null, null)
-  var ConsommateurKafka : InputDStream[ConsumerRecord[String, String]] = null
+  var consommateurKafka : InputDStream[ConsumerRecord[String, String]] = null
   private var trace_kafka : Logger = LogManager.getLogger("Log_Console")
 
 
@@ -173,21 +175,19 @@ object KafkaStreaming {
    * @param KafkaConsumerReadOrder :  ordre de lecture des données du Log
    * @param KafkaZookeeper : ensemble Zookeeper
    * @param KerberosName : service kerberos
-   * @param batchDuration : la durée du streaming
    * @param KafkaTopics : le nom des topics
    * @return
    */
 
   def getConsommateurKafka( kafkaBootStrapServers : String, KafkaConsumerGroupId : String, KafkaConsumerReadOrder : String,
-                            KafkaZookeeper : String, KerberosName : String, batchDuration : Int,
-                            KafkaTopics : Array[String]) : InputDStream[ConsumerRecord[String, String]] = {
+                            KafkaZookeeper : String, KerberosName : String,
+                            KafkaTopics : Array[String], StreamContext : StreamingContext) : InputDStream[ConsumerRecord[String, String]] = {
     try {
 
-      val ssc = getSparkStreamingContext(true, batchDuration)
       KafkaParam = getKafkaSparkConsumerParams(kafkaBootStrapServers, KafkaConsumerGroupId , KafkaConsumerReadOrder ,KafkaZookeeper, KerberosName )
 
-       ConsommateurKafka = KafkaUtils.createDirectStream[String, String](
-        ssc,
+       consommateurKafka = KafkaUtils.createDirectStream[String, String](
+        StreamContext,
         PreferConsistent,
         Subscribe[String, String](KafkaTopics, KafkaParam )
       )
@@ -198,12 +198,9 @@ object KafkaStreaming {
         trace_kafka.info(s"La liste des paramètres pour la connexion du consommateur Kafka sont : ${KafkaParam}")
     }
 
-     return ConsommateurKafka
+    return consommateurKafka
 
   }
-
-
-
 
 
 }

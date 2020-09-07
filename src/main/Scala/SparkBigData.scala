@@ -20,7 +20,7 @@ object SparkBigData {
    * @param env : c'est une variable qui indique l'environnement sur lequel notre application est déployée.
    *            Si Env = True, alors l'appli est déployée en local, sinon, elle est déployée sur un cluster
    */
-  def Session_Spark (env : Boolean = true) : SparkSession = {
+  def Session_Spark (env :Boolean = true) : SparkSession = {
     try {
      if (env == true) {
        System.setProperty("hadoop.home.dir", "C:/Hadoop/")
@@ -61,7 +61,7 @@ object SparkBigData {
     } else {
       spConf = new SparkConf().setAppName("Mon application streaming")
     }
-    trace_log.info(s"la duée du micro-bacth Spark est définie à : $duree_batch secondes")
+    trace_log.info(s"la durée du micro-bacth Spark est définie à : $duree_batch secondes")
     val ssc : StreamingContext = new StreamingContext(spConf, Seconds(duree_batch))
 
     return ssc
