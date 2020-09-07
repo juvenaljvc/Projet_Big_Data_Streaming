@@ -9,6 +9,8 @@ import org.apache.log4j.LogManager
 
 object SparkBigData {
 
+  // Developpement d'applications Big Data en Spark
+
    var ss : SparkSession = null
    var spConf : SparkConf = null
 
