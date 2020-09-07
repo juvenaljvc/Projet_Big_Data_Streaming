@@ -24,7 +24,7 @@ cet objet regroupe l'ensemble des méthodes et fonctions nécessaires :
 1 - pour établir une connexion avec un cluster Kafka (localhost ou cluster)
 2 - pour consommer des données provenant d'un ou plusieurs topic Kafka
 3 - pour stocker les données dans Kafka
-Vous apprenez ici à développer des applications streaming robustes
+Vous apprenez ici à développer des applications  Kafka robustes avec Spark et Scala
  */
 
 object KafkaStreaming {
