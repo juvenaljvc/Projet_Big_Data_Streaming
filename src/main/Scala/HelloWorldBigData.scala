@@ -11,7 +11,7 @@ import PackageTest.PBGS.ClassTest
 import scala.io._
 
 object HelloWorldBigData  {
-  /* premier programme Scala  */
+  /* premier programme Scala - Scala pour le Big Data */
   val ma_var_imm : String = "Juvenal"   // variable immutable
 
   class Person (var nom : String, var prenom : String, var age : Int)
