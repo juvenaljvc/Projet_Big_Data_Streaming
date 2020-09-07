@@ -22,6 +22,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.streaming.Minutes
 
+// développer des clients streaming qui consomment les données de Twitter et les poussent dans Kafka
 class TwitterKafkaStreaming {
 
   private var trace_client_streaming : Logger = LogManager.getLogger("Log_Console")
