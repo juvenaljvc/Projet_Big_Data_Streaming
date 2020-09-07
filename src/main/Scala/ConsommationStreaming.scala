@@ -10,6 +10,8 @@ import org.apache.spark.streaming.kafka010.{CanCommitOffsets, HasOffsetRanges}
 
 object ConsommationStreaming {
 
+  // dans cette classe, vous apprenez à consommer les données qui arrivent en streaming ou en temps réel
+
   val bootStrapServers : String = ""
   val consumerGroupId : String = ""
   val consumerReadOrder : String = ""
