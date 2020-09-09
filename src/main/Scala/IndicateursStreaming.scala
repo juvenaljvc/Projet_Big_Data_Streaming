@@ -28,7 +28,77 @@ object IndicateursStreaming {
     StructField("State", StringType, true))
   )
 
+  private val bootStrapServers : String = ""
+  private val consumerGroupId : String = ""
+  private val consumerReadOrder : String = ""
+  private val zookeeper : String = ""
+  private val kerberosName : String = ""
+  private val batchDuration : Int = 600
+  private val topics : Array[String] = Array("")
+  private val path_fichiers_kpi : String = "/data lake/marketing_JVC/Projet Streaming/kpi"
+
   private var logger : Logger = LogManager.getLogger("Log_Console")
+
+  def main(args: Array[String]): Unit = {
+
+    val ssc = getSparkStreamingContext(true, batchDuration )
+
+    val kk_consumer = getConsommateurKafka(bootStrapServers, consumerGroupId, consumerReadOrder, zookeeper, kerberosName, topics, ssc)
+
+    kk_consumer.foreachRDD{
+
+      rdd_kafka => {
+
+        try {
+
+          val event_kafka = rdd_kafka.map( e => e.value())
+          val offsets_kafka = rdd_kafka.asInstanceOf[HasOffsetRanges].offsetRanges
+
+          val ssession = SparkSession.builder.config(rdd_kafka.sparkContext.getConf).enableHiveSupport().getOrCreate()
+          import ssession.implicits._
+
+          val events_df = event_kafka.toDF("kafka_jsons")
+
+          if( events_df.count() == 0) {
+
+            Seq(
+              ("Aucun événement n'a été receptionné dans le quart d'heure")
+            ).toDF("libelé")
+              .coalesce(1)
+              .write
+              .format("com.databricks.spark.csv")
+              .mode(SaveMode.Overwrite)
+              .save(path_fichiers_kpi + "/logs_streaming.csv")
+
+          } else {
+
+            val df_parsed = getParsedData(events_df, ssession)
+            val df_kpi = getIndicateursComputed(df_parsed, ssession).cache()
+
+            df_kpi.repartition(1)
+              .write
+              .format("com.databricks.spark.csv")
+              .mode(SaveMode.Append)
+              .save(path_fichiers_kpi + "/indicateurs_streaming.csv")
+
+          }
+
+          kk_consumer.asInstanceOf[CanCommitOffsets].commitAsync(offsets_kafka)
+
+        } catch {
+
+          case ex : Exception => logger.error(s"il y'a une ereur dans l'application ${ex.printStackTrace()}")
+
+        }
+
+      }
+
+    }
+
+    ssc.start()
+    ssc.awaitTermination()
+
+  }
 
   def getParsedData (kafkaEventsDf : DataFrame, ss : SparkSession) : DataFrame = {
 
@@ -60,9 +130,48 @@ object IndicateursStreaming {
 
   }
 
-  def getIndicateursComputed (EventsDf : DataFrame, ss : SparkSession) : DataFrame = {
+  def getIndicateursComputed (eventsDf_parsed : DataFrame, ss : SparkSession) : DataFrame = {
+
+    logger.info("calcul des indicateurs encours....")
+
+    import ss.implicits._
+
+    eventsDf_parsed.createOrReplaceTempView("events_tweets")
+
+    val df_indicateurs = ss.sql("""
+           SELECT t.date_event,
+               t.quart_heure,
+               count(t.id) OVER (PARTITION BY t.date_event, t.quart_heure ORDER BY t.date_event,t.quart_heure) as tweetCount,
+               sum(t.bin_retweet) OVER (PARTITION BY t.date_event, t.quart_heure ORDER BY t.date_event, t.quart_heure) as retweetCount
+
+           FROM  (
+              SELECT  from_unixtime(unix_timestamp(event_date, 'yyyy-MM-dd'), 'yyyy-MM-dd') as date_event,
+                  CASE
+                    WHEN minute(event_date) < 15 THEN CONCAT(concat(from_unixtime(unix_timestamp(cast(hour(event_date) as string), 'HH'), 'HH'), ":", "00"), " - ", concat(from_unixtime(unix_timestamp(cast(hour(event_date) as string), 'HH'), 'HH'), ":", "15"))
+                    WHEN minute(event_date) between 15 AND 29 THEN  CONCAT(concat(from_unixtime(unix_timestamp(cast(hour(event_date) as string), 'HH'), 'HH'), ":", "15"), " - ", concat(from_unixtime(unix_timestamp(cast(hour(event_date) as string), 'HH'), 'HH'), ":", "30"))
+                    WHEN minute(event_date) between 30 AND 44 THEN  CONCAT(concat(from_unixtime(unix_timestamp(cast(hour(event_date) as string), 'HH'), 'HH'), ":", "30"), " - ", concat(from_unixtime(unix_timestamp(cast(hour(event_date) as string), 'HH'), 'HH'), ":", "45"))
+                    WHEN minute(event_date) > 44 THEN  CONCAT(concat(from_unixtime(unix_timestamp(cast(hour(event_date) as string), 'HH'), 'HH'), ":", "45"), " - ", concat(from_unixtime(unix_timestamp(cast(hour(event_date) as string), 'HH'), 'HH'), ":", "60"))
+                  END AS quart_heure,
+                  CASE
+                    WHEN retweetCount > 0 THEN 1
+                    ELSE 0
+                  END AS bin_retweet,
+                   id
+              FROM events_tweets
+           ) t ORDER BY t.quart_heure
+      """
+    ).withColumn("Niveau_RT", round(lit(col("retweetCount") / col("tweetCount")) * lit(100), 2))
+     .withColumn("date_event", when(col("date_event").isNull, current_timestamp()).otherwise(col("date_event")))
+     .select(
+        col("date_event").alias("Date de l'event"),
+        col("quart_heure").alias("Quart d'heure de l'event"),
+        col("tweetCount").alias("Nbre de Tweets par QH"),
+        col("retweetCount").alias("Nbre de Retweets par QH"),
+        col("Niveau_RT").alias("Niveau de ReTweet (en %)")
+      )
+
+    return df_indicateurs
 
   }
-
 
 }
