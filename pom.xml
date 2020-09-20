@@ -43,7 +43,7 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_2.11</artifactId>
             <version>${spark.streaming.version}</version>
-            <scope>provided</scope>
+            <scope>remote</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.scala-lang/scala-library -->
         <dependency>
