@@ -16,8 +16,9 @@ import java.util.Properties
 import java.util.Collections
 
 import scala.collection.JavaConverters._
-import org.apache.kafka.clients.producer._
+import org.apache.kafka.clients.producer.{ProducerRecord, _}
 import org.apache.spark.streaming.StreamingContext
+import org.apache.kafka.clients.producer.ProducerConfig._
 
 /*
 cet objet regroupe l'ensemble des méthodes et fonctions nécessaires :
@@ -74,12 +75,31 @@ object KafkaStreaming {
 
   }
 
+  def getKafkaProducerParams_exactly_once (KafkaBootStrapServers : String) : Properties = {
+    val props : Properties = new Properties()
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaBootStrapServers)
+    props.put("security.protocol",  "SASL_PLAINTEXT")
+    //propriétés pour rendre le producer Exactly-Once
+    props.put(ProducerConfig.ACKS_CONFIG,  "all")
+    // pour la cohérence éventuelle. Doit être inférieur ou égal au facteur de réplication du topic dans lequel vous allez publier
+    props.put("min.insync.replicas", "2")
+    //rendre le producer idempotent
+    props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true")
+    props.put(ProducerConfig.RETRIES_CONFIG, "3")
+    props.put("max.in.flight.requests.per.connection", "3")
+
+    return props
+
+  }
+
   def getKafkaConsumerParams (kafkaBootStrapServers : String, KafkaConsumerGroupId : String) : Properties = {
     val props : Properties = new Properties()
     props.put("bootstrap.servers", kafkaBootStrapServers)
-    props.put("auto.offset.reset", "lastest")
+    props.put("auto.offset.reset", "latest")
     props.put("groupe.id",KafkaConsumerGroupId )
-    props.put("enable.auto.commit", false)
+    props.put("enable.auto.commit", "false")
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
 
@@ -147,11 +167,12 @@ object KafkaStreaming {
    */
   def getProducerKafka (KafkaBootStrapServers : String, topic_name : String, message : String) : KafkaProducer[String, String] = {
 
-    trace_kafka.info("instanciation d'une instance du producer Kafka aux serveurs" + ${KafkaBootStrapServers})
+    trace_kafka.info(s"instanciation d'une instance du producer Kafka aux serveurs :  ${KafkaBootStrapServers}")
     lazy val producer_Kafka = new KafkaProducer[String, String](getKafkaProducerParams(KafkaBootStrapServers))
 
     trace_kafka.info(s"message à publier dans le topic ${topic_name},  ${message}")
-    val record_publish = new ProducerRecord[String, String](topic_name, message)
+    val cle : String = "1"
+    val record_publish = new ProducerRecord[String, String](topic_name, cle, message)
 
     try {
       trace_kafka.info("publication du message encours...")
@@ -160,7 +181,7 @@ object KafkaStreaming {
     } catch {
       case ex : Exception =>
         trace_kafka.error(s"erreur dans la publication du message dans Kafka ${ex.printStackTrace()}")
-        trace_kafka.info(s"La liste des paramètres pour la connexion du Producer Kafka sont : ${getKafkaProducerParams(KafkaBootStrapServers)}")
+        trace_kafka.info("La liste des paramètres pour la connexion du Producer Kafka sont :" + getKafkaProducerParams(KafkaBootStrapServers))
     } finally {
       println("n'oubliez pas de clôturer le Producer à la fin de son utilisation")
     }
@@ -202,6 +223,5 @@ object KafkaStreaming {
     return consommateurKafka
 
   }
-
 
 }
