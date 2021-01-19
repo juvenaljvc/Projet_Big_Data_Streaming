@@ -21,10 +21,10 @@ object SparkBigData {
 
   // Developpement d'applications Big Data en Spark
 
-   var ss : SparkSession = null
-   var spConf : SparkConf = null
+  var ss : SparkSession = null
+  var spConf : SparkConf = null
 
-   private var trace_log : Logger = LogManager.getLogger("Logger_Console")
+  private var trace_log : Logger = LogManager.getLogger("Logger_Console")
 
   val schema_order = StructType(Array(
     StructField("orderid",IntegerType, false),
@@ -40,10 +40,11 @@ object SparkBigData {
     StructField("numunit",IntegerType, true)
   ))
 
-
   def main(args: Array[String]) : Unit = {
 
     val session_s = Session_Spark(true)
+
+    session_s.udf.register("valid_phone",valid_phoneUDF)
 
     val df_test = session_s.read
       .format("com.databricks.spark.csv")
@@ -189,7 +190,11 @@ object SparkBigData {
 
     phone_list
       .withColumn("test_phone", valid_phoneUDF(col("phone_number")))
-      .show()
+     // .show()
+
+    phone_list.createOrReplaceTempView("phone_table")
+    session_s.sql( "select valid_phone(phone_number) as valid_phone from phone_table")
+        .show()
 
 
    /* df_windows
@@ -207,6 +212,15 @@ object SparkBigData {
       .option("orc.column.encoding.direct", "name")
       .orc("users_with_options.orc")
   */
+
+    df_joinOrders.createOrReplaceTempView("orders")
+
+    val df_sql : DataFrame = session_s.sql("""
+      select state, city, sum(round(numunits * totalprice)) as commandes_totales from orders group by state, city
+      """)
+
+    val df_hive = session_s.table("orders")    // lire une table à partir du metastore Hive
+    df_sql.write.mode(SaveMode.Overwrite).saveAsTable("report_orders")  // enregistrer et écrire un data frame dans le metastore Hive
 
   }
 
@@ -354,7 +368,7 @@ object SparkBigData {
        ss = SparkSession.builder
            .master("local[*]")
            .config("spark.sql.crossJoin.enabled", "true")
-        //   .enableHiveSupport()
+       //    .enableHiveSupport()
            .getOrCreate()
      }else {
        ss  = SparkSession.builder
