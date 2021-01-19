@@ -1,8 +1,5 @@
 import java.io.FileNotFoundException
 
-import org.apache.avro.ipc.specific.Person
-
-import scala.tools.nsc.doc.model.Public
 import scala.collection.mutable._
 import org.apache.log4j._
 
@@ -21,7 +18,6 @@ object HelloWorldBigData  {
   private var trace_appli : Logger = LogManager.getLogger("Logger_Console")
 
   def main(args: Array[String]): Unit = {
-
 
     val tt : ClassTest = new ClassTest
     val ttt : Int = tt.comptage_package("essai")
