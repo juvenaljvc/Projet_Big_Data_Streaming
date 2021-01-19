@@ -20,6 +20,9 @@ import org.apache.kafka.clients.producer.{ProducerRecord, _}
 import org.apache.spark.streaming.StreamingContext
 import org.apache.kafka.clients.producer.ProducerConfig._
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.fasterxml.jackson.databind.node.ObjectNode
+
 /*
 cet objet regroupe l'ensemble des méthodes et fonctions nécessaires :
 1 - pour établir une connexion avec un cluster Kafka (localhost ou cluster)
@@ -187,6 +190,63 @@ object KafkaStreaming {
     }
 
     return producer_Kafka
+
+  }
+
+
+  def ProducerKafka_exactly_once (KafkaBootStrapServers : String, topic_name : String) : KafkaProducer[String, String] = {
+
+    trace_kafka.info(s"instanciation d'une instance du producer Kafka aux serveurs :  ${KafkaBootStrapServers}")
+    val producer_Kafka = new KafkaProducer[String, String](getKafkaProducerParams_exactly_once(KafkaBootStrapServers))
+
+    val record_publish =  getJSON(KafkaBootStrapServers : String, topic_name : String)
+
+    try {
+      trace_kafka.info("publication du message encours...")
+
+      producer_Kafka.send(record_publish, new Callback {
+        override def onCompletion(metadata: RecordMetadata, exception: Exception): Unit = {
+          if (exception == null) {
+            //le message a été enregistré dans Kafka sans problème.
+            trace_kafka.info("offset du message : " + metadata.offset().toString)
+            trace_kafka.info("topic du message : " + metadata.topic().toString())
+            trace_kafka.info("partition du message : " + metadata.partition().toString())
+            trace_kafka.info("heure d'enregistrement du message : " + metadata.timestamp())
+          }
+        }
+      } )
+      trace_kafka.info("message publié avec succès ! :)")
+    } catch {
+      case ex : Exception =>
+        trace_kafka.error(s"erreur dans la publication du message dans Kafka ${ex.printStackTrace()}")
+        trace_kafka.info("La liste des paramètres pour la connexion du Producer Kafka sont :" + getKafkaProducerParams_exactly_once(KafkaBootStrapServers))
+    } finally {
+      println("n'oubliez pas de clôturer le Producer à la fin de son utilisation")
+    }
+
+    return producer_Kafka
+
+  }
+
+  def getJSON(KafkaBootStrapServers : String, topic_name : String) : ProducerRecord[String, String] = {
+
+    val objet_json = JsonNodeFactory.instance.objectNode()
+
+    val price : Int = 45
+
+    objet_json.put("orderid", "")
+    objet_json.put("customerid", "")
+    objet_json.put("campaignid", "")
+    objet_json.put("orderdate", "")
+    objet_json.put("city", "")
+    objet_json.put("state", "")
+    objet_json.put("zipcode", "")
+    objet_json.put("paymenttype", "CB")
+    objet_json.put("totalprice", price)
+    objet_json.put("numorderlines", 200)
+    objet_json.put("numunit",10)
+
+    return  new ProducerRecord[String, String](topic_name,objet_json.toString)
 
   }
 
