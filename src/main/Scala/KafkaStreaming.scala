@@ -33,8 +33,8 @@ Vous apprenez ici à développer des applications  Kafka robustes avec Spark et 
 
 object KafkaStreaming {
 
-  var KafkaParam : Map[String, Object] = Map(null, null)
-  var consommateurKafka : InputDStream[ConsumerRecord[String, String]] = null
+  var KafkaParam : Map[String, Object] = Map(null, null)                         // mauvaise approche, car variable immutable
+  var consommateurKafka : InputDStream[ConsumerRecord[String, String]] = null   //mauvaise approche, car variable immutable
   private var trace_kafka : Logger = LogManager.getLogger("Log_Console")
 
 
@@ -52,7 +52,7 @@ object KafkaStreaming {
                        KafkaZookeeper : String, KerberosName : String) : Map[String, Object] = {
     KafkaParam = Map(
       "bootstrap.servers" -> kafkaBootStrapServers,
-      "groupe.id"  -> KafkaConsumerGroupId,
+      "group.id"  -> KafkaConsumerGroupId,
       "zookeeper.hosts" -> KafkaZookeeper,
       "auto.offset.reset" -> KafkaConsumerReadOrder,
       "enable.auto.commit" -> (false: java.lang.Boolean),
@@ -101,7 +101,7 @@ object KafkaStreaming {
     val props : Properties = new Properties()
     props.put("bootstrap.servers", kafkaBootStrapServers)
     props.put("auto.offset.reset", "latest")
-    props.put("groupe.id",KafkaConsumerGroupId )
+    props.put("group.id",KafkaConsumerGroupId )
     props.put("enable.auto.commit", "false")
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
