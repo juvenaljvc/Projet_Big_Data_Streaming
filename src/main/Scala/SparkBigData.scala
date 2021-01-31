@@ -398,7 +398,7 @@ object SparkBigData {
   def getSparkStreamingContext (env : Boolean = true, duree_batch : Int) : StreamingContext = {
     trace_log.info("initialisation du contexte Spark Streaming")
     if (env) {
-      spConf = new SparkConf().setMaster("LocalHost[*]")
+      spConf = new SparkConf().setMaster("local[*]")
           .setAppName("Mon application streaming")
     } else {
       spConf = new SparkConf().setAppName("Mon application streaming")
