@@ -54,7 +54,7 @@ object IndicateursStreaming {
           val event_kafka = rdd_kafka.map( e => e.value())
           val offsets_kafka = rdd_kafka.asInstanceOf[HasOffsetRanges].offsetRanges
 
-          val ssession = SparkSession.builder.config(rdd_kafka.sparkContext.getConf).enableHiveSupport().getOrCreate()
+          val ssession : SparkSession = SparkSession.builder.config(rdd_kafka.sparkContext.getConf).enableHiveSupport().getOrCreate()
           import ssession.implicits._
 
           val events_df = event_kafka.toDF("kafka_jsons")
