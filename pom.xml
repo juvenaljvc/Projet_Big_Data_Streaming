@@ -34,6 +34,8 @@
         <hbase.spark.connector.version>1.0.0</hbase.spark.connector.version>
         <hortonworks.hbase.version>1.1.1-2.1-s_2.11</hortonworks.hbase.version>
         <cassandra.spark.connector.version>2.4.1</cassandra.spark.connector.version>
+        <elasticsearch.spark.connector.version>7.11.2</elasticsearch.spark.connector.version>
+        <commoons.http.client.version>3.1</commoons.http.client.version>
         <jackson.databind.version>2.6.7.3</jackson.databind.version>
     </properties>
 
@@ -175,6 +177,12 @@
             <artifactId>spark-cassandra-connector_2.11</artifactId>
             <version>${cassandra.spark.connector.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-spark-20 -->
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch-spark-20_2.11</artifactId>
+            <version>${elasticsearch.spark.connector.version}</version>
+        </dependency>
 
         <!-- shc-core hortonwork hbase connector for Spark -->
         <dependency>
@@ -189,6 +197,14 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.databind.version}</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/commons-httpclient/commons-httpclient -->
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>${commoons.http.client.version}</version>
+        </dependency>
+
 
     </dependencies>
 
