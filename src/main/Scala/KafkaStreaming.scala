@@ -180,6 +180,7 @@ object KafkaStreaming {
     try {
       trace_kafka.info("publication du message encours...")
       producer_Kafka.send(record_publish)
+
       trace_kafka.info("message publié avec succès ! :)")
     } catch {
       case ex : Exception =>
