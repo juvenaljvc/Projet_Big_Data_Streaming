@@ -19,7 +19,7 @@
         <scala.compiler.version>2.15.2</scala.compiler.version>
         <spark.streaming.kafka.version>2.3.0</spark.streaming.kafka.version>
         <spark.hive.version>2.2.0</spark.hive.version>
-        <log4j.version>2.13.3</log4j.version>
+        <log4j.version>2.15.0</log4j.version>
         <junit.version>4.12</junit.version>
         <scalatest.version>3.1.1</scalatest.version>
         <spark.projet.base.version>2.2.0_0.7.4</spark.projet.base.version>
