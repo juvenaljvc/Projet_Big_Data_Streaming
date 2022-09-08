@@ -28,7 +28,7 @@
         <twitter4j.version>4.0.4</twitter4j.version>
         <spark.streaming.twitter.version>1.6.2</spark.streaming.twitter.version>
         <mysql.jdbc.driver.version>8.0.12</mysql.jdbc.driver.version>
-        <postgre.jdbc.driver.version>42.2.18</postgre.jdbc.driver.version>
+        <postgre.jdbc.driver.version>42.4.1</postgre.jdbc.driver.version>
         <microsoft.sqlserver.jdbc.driver.version>6.4.0.jre8</microsoft.sqlserver.jdbc.driver.version>
         <hbase.client.version>2.2.6</hbase.client.version>
         <hbase.spark.connector.version>1.0.0</hbase.spark.connector.version>
