@@ -36,7 +36,7 @@
         <cassandra.spark.connector.version>2.4.1</cassandra.spark.connector.version>
         <elasticsearch.spark.connector.version>7.11.2</elasticsearch.spark.connector.version>
         <commoons.http.client.version>3.1</commoons.http.client.version>
-        <jackson.databind.version>2.6.7.3</jackson.databind.version>
+        <jackson.databind.version>2.13.4.1</jackson.databind.version>
     </properties>
 
     <dependencies>
